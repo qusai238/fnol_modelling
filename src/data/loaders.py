@@ -5,7 +5,9 @@ from pathlib import Path
 import pandas as pd
 
 
-def load_excel(file_path: str | Path, sheet_name: str | int | None = 0) -> pd.DataFrame:
+def load_excel(
+    file_path: str | Path, sheet_name: str | int | None = 0
+) -> pd.DataFrame | dict[str, pd.DataFrame]:
     """Load an Excel sheet into a pandas DataFrame.
 
     Args:
@@ -18,4 +20,11 @@ def load_excel(file_path: str | Path, sheet_name: str | int | None = 0) -> pd.Da
     file_path = Path(file_path)
     if not file_path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")
-    return pd.read_excel(file_path, sheet_name=sheet_name)
+    loaded = pd.read_excel(file_path, sheet_name=sheet_name)
+    frames = loaded.values() if isinstance(loaded, dict) else (loaded,)
+    for frame in frames:
+        frame.columns = [
+            column.lower() if isinstance(column, str) else column
+            for column in frame.columns
+        ]
+    return loaded
