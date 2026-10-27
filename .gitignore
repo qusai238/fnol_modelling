@@ -1,0 +1,23 @@
+# Python cache/build
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# DS artifacts
+data/interim/
+data/processed/
+reports/figures/
+
+# OS/editor
+.DS_Store
+.vscode/

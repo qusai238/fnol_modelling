@@ -1,0 +1,45 @@
+name: fnol_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+
+  # Core data science
+  - numpy
+  - pandas
+  - scipy
+
+  # Machine learning
+  - scikit-learn
+  - xgboost
+  - lightgbm
+  - imbalanced-learn
+  - statsmodels
+
+  # Visualization
+  - matplotlib
+  - seaborn
+  - plotly
+
+  # Notebook environment
+  - jupyterlab
+  - notebook
+  - ipykernel
+
+  # Data I/O and utilities
+  - openpyxl
+  - xlrd
+  - pyarrow
+  - tqdm
+  - pyyaml
+  - python-dotenv
+  - pytest
+
+  # Explainability and feature engineering
+  - shap
+  - category_encoders
+
+  # Pip-only packages
+  - pip:
+      - missingno
