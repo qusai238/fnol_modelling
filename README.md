@@ -13,7 +13,6 @@ This repository contains analysis and modeling work for the Hastings First Notic
 - `notebooks/` — exploratory and reporting notebooks.
 - `src/` — reusable Python modules for data, features, models, and utilities.
 - `reports/figures/` — exported visualizations and report assets.
-- `tests/` — lightweight automated tests.
 
 ## Quick start
 
