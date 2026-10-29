@@ -11,6 +11,20 @@ PROCESSED_DATA_DIR = DATA_DIR / "processed"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 
+INCURRED_COL = "incurred"
+
+# Large-loss threshold: claims above this are split off from the severity target
+CAP = 50_000
+# Target column names created below
+TARGET_INCURRED = "y_incurred"   # floored at 0, no cap (evaluation only)
+TARGET_CAPPED = "y_capped"       # floored at 0 and capped (severity model target)
+TARGET_LARGE = "y_large"         # 1 if the claim is above the cap (classifier target)
+
+# Out-of-time split: develop (tune and train) up to this date, test on later claims
+DATE_COL = "date_of_loss"
+DEV_END = "2013-12-31"
+
+
 # Third-party (TP) type columns that describe a KNOWN type.
 # "tp_type_nk" (not known) is handled separately.
 # Dropped: tp_type_insd_pass_front and tp_type_pass_multi (always 0 in this data).
@@ -63,3 +77,13 @@ TP_REGION_GROUP_MAP = {
     "scotland": "scotland",
     "wales": "wales",
 }
+
+
+DATE_COL = "date_of_loss"
+SPLIT_COL = "split"
+
+DEV_END = "2013-12-31"                 # training window ends here
+SPLIT_TRAIN_VALID = "train_valid"      # tuning and final training
+SPLIT_OOS = "oos"                      # out-of-time years 
+
+CV_VALID_YEARS = (2011, 2012, 2013)    # validation years

@@ -105,3 +105,51 @@ def build_aggregate_features(df: pd.DataFrame) -> pd.DataFrame:
     df = add_grouped_regions(df)
     return df
 ############################ end of aggregate features ############################
+
+############################ Target-related features ############################
+
+def add_targets(df: pd.DataFrame) -> pd.DataFrame:
+    """Create the three target columns from incurred.
+
+    Negative incurred = recoveries, so it is floored at 0.
+    """
+    df = df.copy()
+    floored = df[config.INCURRED_COL].clip(lower=0)
+
+    df[config.TARGET_INCURRED] = floored                                  # no cap, for total-cost checks
+    df[config.TARGET_CAPPED] = floored.clip(upper=config.CAP)                    # severity target (in pounds)
+    df[config.TARGET_LARGE] = (df[config.INCURRED_COL] > config.CAP).astype(int)        # large-loss flag
+    return df
+
+
+def split_dev_test(df: pd.DataFrame):
+    """Out-of-time split: development years vs the later untouched test years."""
+    is_dev = df[config.DATE_COL] <= pd.Timestamp(config.DEV_END)
+    return df[is_dev].copy(), df[~is_dev].copy()
+
+
+def get_mean_excess_over_cap(dev_df: pd.DataFrame) -> float:
+    """Average amount above the cap among large claims (flat large-loss loading).
+
+    Use the development data only, so no test information leaks in.
+    """
+    large_claims = dev_df.loc[dev_df[config.TARGET_LARGE] == 1, config.TARGET_INCURRED]
+    return float((large_claims - config.CAP).mean())
+
+
+def combine_predictions(pred_capped, prob_large, mean_excess: float):
+    """Expected claim cost = capped severity + P(large) x mean excess above the cap."""
+    return pred_capped + prob_large * mean_excess
+
+
+def print_target_summary(df: pd.DataFrame) -> None:
+    """Quick sanity check on the targets."""
+    n_negative = int((df[config.INCURRED_COL] < 0).sum())
+    zero_share = (df[config.TARGET_INCURRED] == 0).mean()
+    n_large = int(df[config.TARGET_LARGE].sum())
+    large_cost_share = df.loc[df[config.TARGET_LARGE] == 1, config.TARGET_INCURRED].sum() / df[config.TARGET_INCURRED].sum()
+
+    print(f"Negative incurred floored to 0: {n_negative}")
+    print(f"Share of claims with zero cost: {zero_share:.1%}")
+    print(f"Large claims (> {config.CAP:,}): {n_large} ({n_large / len(df):.1%})")
+    print(f"Large claims' share of total cost: {large_cost_share:.1%}")

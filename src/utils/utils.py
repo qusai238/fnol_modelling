@@ -1,6 +1,7 @@
 """Utilities for cleaning FNOL data."""
 
 import re
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -18,3 +19,13 @@ def replace_abnormal_entries(dataframe: pd.DataFrame) -> pd.DataFrame:
 			_ABNORMAL_ENTRY, np.nan, regex=True
 		)
 	return cleaned
+
+
+def save_preprocessed_data(
+	dataframe: pd.DataFrame, filename: str = "preprocessed.csv"
+) -> Path:
+	"""Save a DataFrame as CSV in data/preporcessed and return its path."""
+	output_path = config.DATA_DIR / "preporcessed" / filename
+	output_path.parent.mkdir(parents=True, exist_ok=True)
+	dataframe.to_csv(output_path, index=False)
+	return output_path
