@@ -5,15 +5,6 @@ import numpy as np
 import src.config as config 
 
 
-def build_baseline_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Return a clean baseline feature frame.
-
-    This is a placeholder pass-through transform to be extended as
-    case-study features are defined.
-    """
-    return df.copy()
-
-
 def build_time_features(df: pd.DataFrame) -> pd.DataFrame:
     """Add calendar, cyclical and UK season features from datetime date_of_loss and time_hour."""
     df = df.copy()
@@ -43,7 +34,7 @@ def build_time_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-############################ aggregate features functions ############################
+############################ aggregate features functions(tp, inj, region) ############################
 def add_tp_n_total(df: pd.DataFrame) -> pd.DataFrame:
     """Total number of third parties = known types + 'not known' type."""
     df = df.copy()
@@ -54,7 +45,23 @@ def add_tp_n_total(df: pd.DataFrame) -> pd.DataFrame:
 def add_inj_flagged_n(df: pd.DataFrame) -> pd.DataFrame:
     """Number of injuries flagged as whiplash, traumatic or fatality."""
     df = df.copy()
-    df["inj_flagged_n"] = df[config.INJURY_FLAGGED_COLS].sum(axis=1)
+    df[config.INJURY_FLAGGED_COL] = df[config.INJURY_FLAGGED_COLS].sum(axis=1)
+    return df
+
+
+def add_inj_known_share(df: pd.DataFrame) -> pd.DataFrame:
+    """Share of injury records that are flagged (whiplash/traumatic/fatality).
+
+    flagged / (flagged + unclear + not known). Needs inj_flagged_n first.
+    A low value means most injuries on the claim are still unclear or unknown.
+    """
+    df = df.copy()
+    total_injury_records = (
+        df[config.INJURY_FLAGGED_COL] + df[config.INJURY_UNCLEAR_COL] + df[config.INJURY_UNKNOWN_COL]
+    )
+    # Avoid dividing by zero: where there are no injury records the share is 0
+    safe_total = total_injury_records.replace(0, np.nan)
+    df["inj_known_share"] = (df[config.INJURY_FLAGGED_COL] / safe_total).fillna(0)
     return df
 
 
@@ -79,7 +86,7 @@ def add_inj_per_tp(df: pd.DataFrame) -> pd.DataFrame:
     """Flagged injuries per third party. Needs tp_n_total and inj_flagged_n first."""
     df = df.copy()
     safe_total = df["tp_n_total"].replace(0, np.nan)
-    df["inj_per_tp"] = (df["inj_flagged_n"] / safe_total).fillna(0)
+    df["inj_per_tp"] = (df[config.INJURY_FLAGGED_COL] / safe_total).fillna(0)
     return df
 
 
@@ -100,13 +107,30 @@ def build_aggregate_features(df: pd.DataFrame) -> pd.DataFrame:
     """Run all aggregate steps in the right order (inj_per_tp needs the two before it)."""
     df = add_tp_n_total(df)
     df = add_inj_flagged_n(df)
+    df = add_inj_known_share(df)
     df = add_inj_severity_ord(df)
     df = add_inj_per_tp(df)
     df = add_grouped_regions(df)
     return df
 ############################ end of aggregate features ############################
 
-############################ Target-related features ############################
+############################ Target-related functions ############################
+def select_final_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep ids + features + targets, set categorical dtypes and sort by date."""
+    df = df.copy()
+    df = df.rename(columns={"claim number": "claim_number", "vechile_registration_present": "vehicle_registration_present"}) 
+
+    missing = [c for c in config.FINAL_COLS if c not in df.columns]
+    if missing:
+        raise ValueError(f"Missing columns: {missing}")
+
+    df = df[config.FINAL_COLS].copy()
+    for col in config.CATEGORICAL_COLS:
+        df[col] = df[col].astype("category")                    # NaN stays NaN
+
+    # sorted by date, with a clean unique index for the CV folds
+    return df.sort_values(["date_of_loss", "claim_number"]).reset_index(drop=True)
+
 
 def add_targets(df: pd.DataFrame) -> pd.DataFrame:
     """Create the three target columns from incurred.
@@ -153,3 +177,18 @@ def print_target_summary(df: pd.DataFrame) -> None:
     print(f"Share of claims with zero cost: {zero_share:.1%}")
     print(f"Large claims (> {config.CAP:,}): {n_large} ({n_large / len(df):.1%})")
     print(f"Large claims' share of total cost: {large_cost_share:.1%}")
+
+
+def set_categorical_dtypes(df: pd.DataFrame, categorical_cols: list) -> pd.DataFrame:
+    """Cast text columns to the category dtype so XGBoost can use them. NaN stays NaN."""
+    df = df.copy()
+    for col in categorical_cols:
+        df[col] = df[col].astype("category")
+    return df
+
+
+def check_feature_dtypes(df: pd.DataFrame, feature_cols: list) -> None:
+    """Print any feature column XGBoost cannot read (anything other than int, float, bool or category)."""
+    allowed = ["int", "float", "bool", "category"]
+    bad = [c for c in feature_cols if not any(df[c].dtype.name.startswith(a) for a in allowed)]
+    print(f"Columns with unsupported dtypes: {bad}")

@@ -1,0 +1,23 @@
+{
+  "metric": "logloss",
+  "cv_score": 0.09626858726303501,
+  "cv_baseline_score": 0.14317227006765232,
+  "params": {
+    "monotone": false,
+    "max_depth": 2,
+    "learning_rate": 0.01755538103919057,
+    "min_child_weight": 0.13273985519606332,
+    "subsample": 0.7479116612064534,
+    "colsample_bytree": 0.6372825251160338,
+    "reg_lambda": 42.447966439296515,
+    "reg_alpha": 0.20548519496635978,
+    "gamma": 0.8433617625358457
+  },
+  "n_estimators": 848,
+  "cv_best_iters": [
+    1349,
+    652,
+    311
+  ],
+  "cv_oof_auc": 0.9157704914438561
+}

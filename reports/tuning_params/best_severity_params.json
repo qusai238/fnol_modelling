@@ -1,0 +1,23 @@
+{
+  "metric": "tweedie_deviance_p1.5",
+  "cv_score": 135.0211762717865,
+  "cv_baseline_score": 218.74058880024663,
+  "params": {
+    "tweedie_variance_power": 1.4670508873911174,
+    "monotone": false,
+    "max_depth": 5,
+    "learning_rate": 0.026485393861081313,
+    "min_child_weight": 691.7925218013585,
+    "subsample": 0.8732979909276866,
+    "colsample_bytree": 0.511679134511437,
+    "reg_lambda": 12.968390294050558,
+    "reg_alpha": 0.004438198251982728,
+    "gamma": 0.5743842888461244
+  },
+  "n_estimators": 332,
+  "cv_best_iters": [
+    471,
+    315,
+    119
+  ]
+}
