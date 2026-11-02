@@ -131,8 +131,7 @@ FINAL_COLS = ID_COLS + FEATURE_COLS + TARGET_COLS
 
 # tuning variables 
 SEED = 42
-N_SEEDS = 5
-N_TRIALS = 60 
+N_TRIALS = 100 
 EARLY_STOPPING_ROUNDS = 100
 MAX_TREES = 3000
 FINAL_TREES_MULTIPLIER = 1.1
@@ -150,6 +149,24 @@ TWEEDIE_POWER_RANGE = (1.3, 1.7)
 
 
 # prediction columns 
-PRED_CAPPED_COL = "pred_capped"
-PROB_LARGE_COL = "prob_large"
-PRED_TOTAL_COL = "pred_total"
+PRED_CAPPED_COL = "pred_capped" # severity pred
+PROB_LARGE_COL = "prob_large" # large loss prob prediction
+PRED_TOTAL_COL = "pred_total" # prediction total 
+PRED_BASELINE_COL = "pred_baseline" # severity baseline
+PRED_BASELINE_TOTAL_COL = "pred_baseline_total"   # combined baseline: development mean of y_incurred
+PREV_BASELINE_COL = "prev_baseline" # large_loss ratue used as baseline
+
+
+
+# evaluation 
+N_DECILES = 10
+N_CALIBRATION_BINS = 5       
+N_BOOTSTRAP = 500
+RANDOM_SEED = 0
+
+# Segments for actual-vs-expected tables 
+SEGMENT_COLS = ["vehicle_mobile", "location_of_incident", "notifier",
+                "weather_conditions", "injury_flagged"]
+
+# Ways of turning the large claims into a flat excess p * mean/median/etc
+EXCESS_METHODS = ["mean", "median", "trimmed_mean_10pct"]

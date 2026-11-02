@@ -16,6 +16,7 @@ dependencies:
   - lightgbm
   - imbalanced-learn
   - statsmodels
+  - optuna
 
   # Visualization
   - matplotlib
